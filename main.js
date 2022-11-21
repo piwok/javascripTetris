@@ -22,8 +22,22 @@ class Grid {
             this.div.style.width = `${this.width}px`;
             this.div.style.height = `${this.height}px`;
             this.insert_point = '4,4';
-            this.intervals = {'timer fruta': ''};
+            this.intervals = setInterval( () => {
+                if (this.left === true && this.right === false) {
+                    const actual = this.getActualCells();
+                    const futuro = this.getLeftFutureCells();
+                    //check future cells are all empty and in the grid before movement
+                    for (let i = 0; i < actual.length; i++) {
+                        this.cell_obj[actual[i]].cell.setAttribute('class', 'celdaVacia');
+                    }
+                    for (let i = 0; i < futuro.length; i++) {
+                        this.cell_obj[futuro[i]].cell.setAttribute('class', 'piezaPurpura');
+                    }
+                }
+            }, 100);
             this.active_piece = false;
+            this.left = false;
+            this.right = false;
             document.getElementById('root').appendChild(this.div);
                     
         }
@@ -36,13 +50,20 @@ class Grid {
             return result;
         }
 
-        getFutureCells () {
+        getSpinFutureCells () {
             const result = [this.active_piece.anchor];
             const new_position = this.active_piece.nextPosition();
             for (let i = 0; i< this.active_piece.points[new_position]['points'].length ; i++) {
-                console.log(this.active_piece.anchor);
-                console.log(this.active_piece.points[new_position]['points'][i]);
                 result.push(sumTwoStrNumArrays(this.active_piece.points[new_position]['points'][i], this.active_piece.anchor));
+            }
+            return result;
+        }
+        
+        getLeftFutureCells () {
+            this.active_piece.anchor = sumTwoStrNumArrays(this.active_piece.anchor, '-1,0')
+            const result = [this.active_piece.anchor];
+            for (let i = 0; i< this.active_piece.points[this.active_piece.position]['points'].length ; i++) {
+                result.push(sumTwoStrNumArrays(this.active_piece.points[this.active_piece.position]['points'][i], this.active_piece.anchor));
             }
             return result;
         }
@@ -69,15 +90,35 @@ class Grid {
         spinPiece () {
             //calculo futuros espacios ocupados
             const actual = this.getActualCells();
-            const futuro = this.getFutureCells();
+            const futuro = this.getSpinFutureCells();
             this.active_piece.position = this.active_piece.nextPosition();
             for (let i = 0; i < actual.length; i++) {
                 this.cell_obj[actual[i]].cell.setAttribute('class', 'celdaVacia');
+            }
             for (let i = 0; i < futuro.length; i++) {
                 this.cell_obj[futuro[i]].cell.setAttribute('class', 'piezaPurpura');
             }
-            }
+            
         }
+
+        // leftMovement () {
+        //     if (this.left != false) {
+        //         console.log(this);
+        //         console.log(this.left);
+        //         console.log('left movement');
+        //     }
+            
+            //calculo futuros espacios ocupados
+            // const actual = this.getActualCells();
+            // const futuro = this.getFutureCells();
+            // this.active_piece.position = this.active_piece.nextPosition();
+            // for (let i = 0; i < actual.length; i++) {
+            //     this.cell_obj[actual[i]].cell.setAttribute('class', 'celdaVacia');
+            // for (let i = 0; i < futuro.length; i++) {
+            //     this.cell_obj[futuro[i]].cell.setAttribute('class', 'piezaPurpura');
+            // }
+            // }
+        //}
 
 }
 
@@ -125,7 +166,8 @@ window.onload = function init() {
     //tablero de 10 por 20.
     let grid = new Grid (350, 700);
     let prueba_pieza = new PurplePiece(grid.insert_point);
-    
+    let counter = 0;
+
     for (let i = 0; i<10; i++) {
         for (let j = 0; j<20; j++) {
             new_cell = new Cell (i, j, 35*i, 35*j);
@@ -135,39 +177,51 @@ window.onload = function init() {
 
     grid.addPiece(prueba_pieza);
     window.addEventListener("keydown", function(event) {
-        console.log(event);
-        if (event.defaultPrevented) {
-            return;
-        }
+        // console.log(event);
+        
+        // if (event.defaultPrevented) {
+        //     return;
+        //}
         if (event.code === "Space") {
             grid.spinPiece();
             
         }
 
-        else if (event.code === 'ArrowLeft') {
-            grid.intervals['movimiento_izquierda'] = setInterval()
+        if (event.code === 'ArrowLeft') {
+            grid.left = true;
+                   
+        }
 
+        if (event.code === 'ArrowRight') {
+            grid.right = true;
+                   
         }
                 
         event.preventDefault();
-        }, true);
+        });
     
     window.addEventListener("keyup", function(event) {
-        console.log(event);
-        this.clearInterval(this.intervals['movimiento_izquierda']);
-        this.clearInterval(this.intervals['movimiento_derecha']);
-    })
+        if (event.code === 'ArrowLeft') {
+            console.log('weeeeeeeee');
+            grid.left = false;}
+        if (event.code === 'ArrowRight') { 
+            grid.right = false;}
+        
+        
+    }
+    );
+
     
+
+
+
+
+
+
+
+
+
+
+
+
 }
-
-
-
-
-
-
-
-
-
-
-
-
