@@ -6,7 +6,7 @@
     
 }
 
-#grid {
+.main_grid {
     background-color: white;
     position: absolute;
     left: 425px;
@@ -14,6 +14,16 @@
     margin: 0px;
     
 }
+
+.nextPieceGrid {
+    background-color: white;
+    position: absolute;
+    left: 850px;
+    top: 55px;
+    margin: 0px;
+    
+}
+
 
 .celdaVacia {
     background-color:brown;
@@ -24,9 +34,46 @@
 
 }
 
+.celdaNextPieceGrid {
+    background-color:black;
+    width: 35px;
+    height: 35px;
+    position: absolute;
+    border: solid white;
+
+}
+
+
 
 .piezaPurpura {
     background-color:rgb(230, 47, 153);
+    width: 35px;
+    height: 35px;
+    position: absolute;
+    border: solid black;
+
+}
+
+.piezaAzul {
+    background-color:rgb(51, 16, 148);
+    width: 35px;
+    height: 35px;
+    position: absolute;
+    border: solid black;
+
+}
+
+.piezaVerde {
+    background-color:green;
+    width: 35px;
+    height: 35px;
+    position: absolute;
+    border: solid black;
+
+}
+
+.piezaNaranja {
+    background-color: orange;
     width: 35px;
     height: 35px;
     position: absolute;
