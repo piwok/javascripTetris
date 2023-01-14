@@ -127,14 +127,14 @@ class PieceLoader {
 //this.div is the html tag of a div.
 
 class Cell {
-    constructor (x_pos, y_pos) {
+    constructor () {
         //Logical data
         this.cell = 'empty';
         
         
         //Graphical data
         this.div = document.createElement ('div');
-        this.div.setAttribute('class', 'celdaVacia');
+        this.div.setAttribute('class', 'emptyCell');
         this.div.style.left = `${this.x_pos}px`;
         this.div.style.top = `${this.y_pos}px`;
     }
@@ -156,27 +156,53 @@ class Cell {
 
 }
 
+// width: width of the grid an integer number of cells
+// height: height of the grid an integer number of cells
+// insert point: cell from the grid where the anchor of the inserted piece is allocated
+// animated: true => the grid is animated via setInterval
 class Grid {
-    constructor (width, height, insert_point) {
+    constructor (width, height, insert_point, css_grid_class, css_cells_class, animated) {
         this.width = width;
         this.height = height;
         this.insert_point = insert_point;
         this.active_piece = false;
         this.left = false;
         this.right = false;
-
-
-
-
+        this.animated = animated;
+        
         //Graphical variables//
         this.cell_obj = {};
         this.div = document.createElement('div');
-        this.div.style.width = `${this.width}px`;
-        this.div.style.height = `${this.height}px`;
+        this.div.style.width = `${this.width*35}px`;
+        this.div.style.height = `${this.height*35}px`;
+        this.div.setAttribute('class', css_grid_class);
         document.getElementById('root').appendChild(this.div);
+        
+
+        
+    
     }
 
+    downAnimation () {
+        const new_points = this.active_piece.movePiece('0,-1', false, false);
+        console.log(new_points);
+    }
 
+    
+    
+    
+    
+    
+    addCell (strCoordinates) {
+        let temp = strCoordinates.split(',');
+        temp = [parseInt(temp[0]), parseInt(temp[1])];
+        const new_cell = new Cell();
+        new_cell.div.style.left = `${temp[0]*35}px`;
+        new_cell.div.style.top = `${temp[1]*35}px`;
+        this.cell_obj[strCoordinates] = new_cell;
+        this.div.appendChild(this.cell_obj[strCoordinates].div);
+    }
+    
     getActualCells () {
     
         }
@@ -193,10 +219,42 @@ class Grid {
 
             
     addPiece (new_piece) {
+        this.active_piece = new_piece;
 
         }
+}
 
-
-
-
+//MAIN CODE//
+window.onload = function init() {
+    let intervals = {
+    'main': null,
+    'secondary': null
+    }
+    let grid = new Grid(10, 20, '4,1', 'mainGrid', true);
+    for (let i = 0; i<10; i++) {
+        for (let j = 0; j<20; j++) {
+            grid.addCell (`${i},${j}`);
+        }
+    }
+    let next_piece_grid = new Grid(5, 5, '1,2', 'nextPieceGrid', false);
+    for (let i = 0; i<5; i++) {
+        for (let j = 0; j<5; j++) {
+            next_piece_grid.addCell (`${i},${j}`);
+            next_piece_grid.cell_obj[`${i},${j}`].setClass('NextPieceGridCell');
+        }
+    }
+    let piece_loader = new PieceLoader ();
+    grid.addPiece (piece_loader.popPiece());
     
+}
+
+
+
+
+
+
+
+
+
+
+
