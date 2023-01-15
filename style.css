@@ -19,7 +19,7 @@
     width: 35px;
     height: 35px;
     position: absolute;
-    /*border: solid black;*/
+    border: solid black;
 }
 
 .NextPieceGridCell {
@@ -54,6 +54,14 @@
 
 .orangePiece {
     background-color: orange;
+    width: 35px;
+    height: 35px;
+    position: absolute;
+    border: solid black;
+}
+
+.redPiece {
+    background-color: red;
     width: 35px;
     height: 35px;
     position: absolute;
