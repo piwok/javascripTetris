@@ -32,8 +32,10 @@
 
 .purplePiece {
     background-color:rgb(230, 47, 153);
+    width: 35px;
+    height: 35px;
+    position: absolute;
     border: solid black;
-
 }
 
 .bluePiece {
@@ -67,3 +69,20 @@
     position: absolute;
     border: solid black;
 }
+
+.yellowPiece {
+    background-color: yellow;
+    width: 35px;
+    height: 35px;
+    position: absolute;
+    border: solid black;
+}
+
+.darkBluePiece {
+    background-color: rgb(10, 3, 39);
+    width: 35px;
+    height: 35px;
+    position: absolute;
+    border: solid black;
+}
+

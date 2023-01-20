@@ -16,42 +16,28 @@ class Piece {
 static type_of_pieces = {
 'purplePiece': [['0,-1', '1,0', '2,0'], ['1,0', '0,1', '0,2'], ['0,1', '-1,0', '-2,0'], ['-1,0', '0,-1','0,-2']],
 'darkBluePiece': [['-1,0', '0,-1', '1,-1'], ['0,-1', '1,0', '1,1']],
-'yellowPiece': [['0,-1', '-1,0', '-2,0'], ['1,0', '0,-1', '0,-2'], ['0,-1', '1,-1', '1,-2'], ['-1,0', '0,1', '0,2']],
-'orangePiece': [['-1,0', '0,-1', '-1,-1'], ['0,1', '1,0', '1,-1']],
+'yellowPiece': [['0,-1', '-1,0', '-2,0'], ['1,0', '0,-1', '0,-2'], ['0,-1', '1,-1', '2,-1'], ['-1,0', '0,1', '0,2']],
+'orangePiece': [['-1,-1', '0,-1', '1,0'], ['1,-1', '1,0', '0,1']],
 'redPiece': [['0,-1', '0,-2', '0,-3'], ['1,0', '2,0', '3,0']],
 'greenPiece': [['-1,0', '1,0', '0,-1'], ['0,-1', '1,0', '0,1'], ['-1,0', '1,0', '0,1'], ['0,-1', '-1,0', '0,1']],
 'bluePiece': [['0,-1', '1,-1', '1,0']]};
+static piece_ID = 0;
 constructor (model, insert_point) {
     this.position = 0;
     this.anchor = insert_point;
     this.points = Piece.type_of_pieces[model];
     this.model = model;
-    }
+    this.id = Piece.piece_ID;
+    Piece.piece_ID++;
 
-movePieceSpin (type) {
-    const temp_anchor = this.anchor;
-    const result = [temp_anchor];
-    let temp_position = this.position;
-    if (temp_position === this.points.length-1) {
-        temp_position = 0;}
-    else {
-        temp_position++}
-    for (let i=0; i<this.points[temp_position].length; i++) {
-        result.push(sumTwoStrNums(temp_anchor, this.points[temp_position][i]))
-    }
-    if (type === true) {
-        this.anchor = temp_anchor;
-        this.position = temp_position;
-    return result;
-}
 }
 }
 
 class PieceLoader {
     constructor() {
         this.pieces = ['purplePiece', 'darkBluePiece', 'bluePiece', 'yellowPiece', 'greenPiece', 'redPiece', 'orangePiece'];
-        this.insert_point = '1,1';
-        this.piece = false;
+        this.insert_point = '5,3';
+        this.piece = null;
         this.RPG();
 
     }
@@ -62,6 +48,7 @@ class PieceLoader {
             seed = 6;
         }
         this.piece = new Piece(this.pieces[seed], this.insert_point);
+        
     }
     //Pop and return the piece and generate a new random piece// 
     popPiece () {
@@ -94,7 +81,7 @@ class Cell {
     }
 
     setPiece (piece) {
-        this.cell = piece;
+        this.piece = piece;
     }
 
 }
@@ -134,18 +121,37 @@ class Grid {
         const points = this.movePieceStraight('0,0', false); // muevo la pieza 0 en los dos ejes para obtener los puntos de la pieza iniciales desde el insert point
         for (let i = 0; i < points.length; i++) {
             this.cells[points[i]].setClass(new_piece.model);
+            this.cells[points[i]].piece = this.active_piece;
         }
 
     }
 
     isValidCoordinates (new_points) {
+        let old_points = this.movePieceStraight('0,0', false);
+        let valid_points = [];
+        
         for (let i = 0; i < new_points.length; i++) {
             if (!(new_points[i] in this.cells)) {
                 return false;
             }
         }
-        return true;
-    }
+        for (let i = 0; i < new_points.length; i++) {
+            if (!(old_points.includes(new_points[i]))) {
+                valid_points.push(new_points[i]);
+            }
+        }
+        for (let i = 0; i < valid_points.length; i++) {
+            if ((this.cells[valid_points[i]].piece !== null)) {
+                if (this.cells[valid_points[i]].piece.id !== this.active_piece.id) {
+                    return false
+                }
+
+            }
+            
+            }
+        return true
+        }
+    
 
     //step: movement to perform in puece in the format: '0,1' one step down
     //spin: movement to perform a clockwise spin of 90 degrees
@@ -165,65 +171,147 @@ class Grid {
         }
         return result
     }
+    
+    movePieceSpin (type) {
+        let temp_anchor = this.active_piece.anchor;
+        let result = [temp_anchor];
+        let temp_position = this.active_piece.position;
+        if (temp_position === this.active_piece.points.length-1) {
+            temp_position = 0;}
+        else {
+            temp_position++}
+        for (let i=0; i<this.active_piece.points[temp_position].length; i++) {
+            result.push(sumTwoStrNums(temp_anchor, this.active_piece.points[temp_position][i]))
+        }
+        if (type === true) {
+            this.active_piece.anchor = temp_anchor;
+            this.active_piece.position = temp_position;
+        }
+        return result;
+        
+    }
 }
 
 
 
 //MAIN CODE//
 document.addEventListener('DOMContentLoaded', function () {
-let intervals = {
-    'main': null,
-    'secondary': null
+    let grid = new Grid(10, 20, '5,3', 'mainGrid');
+    let intervals = {
+        'main': null,
+        'secondary': null
     }
-    let grid = new Grid(10, 20, '5,5', 'mainGrid');
-test_piece = new Piece('redPiece','4,4');
+    piece_loader = new PieceLoader();
+    test_piece = piece_loader.popPiece();
+    grid.addPiece(test_piece);
+    let update_grid_counter = 0;
+    let left = false;
+    let right = false;
+    let spin = null;
+    window.addEventListener("keydown", function(event) {
+        if (event.code === "ArrowLeft") {
+            left = true;
+        } 
+        else if (event.code === "ArrowRight"){
+            right = true;
+        }
+        else if (event.code === 'Space') {
+            spin = true;
+        }
+    }, true);
 
-grid.addPiece(test_piece);
+    window.addEventListener("keyup", function(event) {
+        if (event.code === "ArrowLeft") {
+            left = false;
+        } 
+        else if (event.code === "ArrowRight"){
+            right = false;
+        }
+        else if (event.code === 'Space') {
+            spin = false;;
+        }
+    }, true);
+    
 
-
-intervals['main'] = setInterval(updateGrid, 25);
-
-//MAIN FUNCTIONS
-
-let update_grid_counter = 0;
-let left = null;
-let right = null;
-let spin = null;
-
-function updateGrid (grid) {
-    if (spin === true) {
-        grid.movePieceSpin();
-    }
-    if (update_grid_counter === 4) {
-        console.log(grid);
-        if (grid.isValidCoordinates(grid.movePieceStraight('0,1', false))) {
-            old_points = grid.active_piece.points[grid.active_piece.position];
-            new_points = grid.movePieceStraight('0,1', true);
-            for (let i = 0; i < old_points.length; i++) {
-                grid.cells[old_points[i]].setClass('emptyCell');
+    intervals['main'] = setInterval((grid) => {
+        
+        //MAIN FUNCTIONS
+        if (spin === true) {
+            
+            if (grid.isValidCoordinates(grid.movePieceSpin(false))) {
+                old_points = grid.movePieceStraight('0,0', false);
+                new_points = grid.movePieceSpin(true);
+                for (let i = 0; i < old_points.length; i++) {
+                    grid.cells[old_points[i]].setClass('emptyCell');
+                    grid.cells[old_points[i]].piece = null;
+                }
+                for (let i = 0; i < new_points.length; i++) {
+                    grid.cells[new_points[i]].setClass(grid.active_piece.model);
+                    grid.cells[new_points[i]].piece = grid.active_piece;
+                }
+            spin = false;
             }
-            for (let i = 0; i < new_points[i]; i++) {
-                grid.cells[new_points[i]].setClass(grid.active_piece.setClass(grid.active_piece.model));
+            
+            else {
+                spin = false;
+            }  
+        }
+        if ((update_grid_counter === 4) && (grid.active_piece != null)) {
+            if (grid.isValidCoordinates(grid.movePieceStraight('0,1', false))) {
+                old_points = grid.movePieceStraight('0,0', false);
+                new_points = grid.movePieceStraight('0,1', true);
+                for (let i = 0; i < old_points.length; i++) {
+                    grid.cells[old_points[i]].setClass('emptyCell');
+                    grid.cells[old_points[i]].piece = null;
+                }
+                for (let i = 0; i < new_points.length; i++) {
+                    grid.cells[new_points[i]].setClass(grid.active_piece.model);
+                    grid.cells[new_points[i]].piece = grid.active_piece;
+                }
             }
+            else {
+                grid.active_piece = null
+                grid.addPiece(piece_loader.popPiece());
+            }   
+        }
+        if (left === true && right === false) {
+            if (grid.isValidCoordinates(grid.movePieceStraight('-1,0', false))) {
+                old_points = grid.movePieceStraight('0,0', false);
+                new_points = grid.movePieceStraight('-1,0', true);
+                for (let i = 0; i < old_points.length; i++) {
+                    grid.cells[old_points[i]].setClass('emptyCell');
+                    grid.cells[old_points[i]].piece = null;
+                }
+                for (let i = 0; i < new_points.length; i++) {
+                    grid.cells[new_points[i]].setClass(grid.active_piece.model);
+                    grid.cells[new_points[i]].piece = grid.active_piece;
+                }
+                
+            }
+        }
+        else if (left === false && right === true) {
+            if (grid.isValidCoordinates(grid.movePieceStraight('1,0', false))) {
+                old_points = grid.movePieceStraight('0,0', false);
+                new_points = grid.movePieceStraight('1,0', true);
+                for (let i = 0; i < old_points.length; i++) {
+                    grid.cells[old_points[i]].setClass('emptyCell');
+                    grid.cells[old_points[i]].piece = null;
+                }
+                for (let i = 0; i < new_points.length; i++) {
+                    grid.cells[new_points[i]].setClass(grid.active_piece.model);
+                    grid.cells[new_points[i]].piece = grid.active_piece;
+                }
+                
+            }
+        }
+        if (update_grid_counter === 4) {
+            update_grid_counter = 0
         }
         else {
-            grid.active_piece = null;
+            update_grid_counter++
         }
-    }
-    if (left === true && right === false) {
-        grid.movePieceStraight('-1,0', false)
-    }
-    else if (left === false && right === true) {
-        grid.movePieceStraight('1,0', false);
-    }
-    if (update_grid_counter === 4) {
-        update_grid_counter = 0
-    }
-    else {
-        update_grid_counter++
-    }
-    update_grid_counter++
-}
+        
+    }, 100, grid);
 });
 
 
