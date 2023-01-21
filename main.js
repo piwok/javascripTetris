@@ -34,11 +34,13 @@ constructor (model, insert_point) {
 }
 
 class PieceLoader {
-    constructor() {
+    constructor(grid) {
+        this.grid = grid;
         this.pieces = ['purplePiece', 'darkBluePiece', 'bluePiece', 'yellowPiece', 'greenPiece', 'redPiece', 'orangePiece'];
-        this.insert_point = '5,3';
+        this.insert_point = '4,4';
         this.piece = null;
         this.RPG();
+        //this.grid.addPiece(this.piece);
 
     }
     //Random Piece Generator//
@@ -47,7 +49,18 @@ class PieceLoader {
         if (seed === 7) {
             seed = 6;
         }
-        this.piece = new Piece(this.pieces[seed], this.insert_point);
+        if (this.piece !== null) {
+            const old_points = this.grid.movePieceStraight('0,0', false);
+            for (let i = 0; i < old_points.length; i++) {
+                this.grid.cells[old_points[i]].setClass('NextPieceGridCell');
+            this.piece = new Piece(this.pieces[seed], this.insert_point);
+            this.grid.addPiece(this.piece);
+            }
+        }
+        else {
+            this.piece = new Piece(this.pieces[seed], this.insert_point);
+            this.grid.addPiece(this.piece);
+        }
         
     }
     //Pop and return the piece and generate a new random piece// 
@@ -73,13 +86,6 @@ class Cell {
         this.div.setAttribute('class', new_class);
     }
 
-    isOccupied () {
-        if (this.cell != 'empty') {
-            return true;
-        }
-        return false;
-    }
-
     setPiece (piece) {
         this.piece = piece;
     }
@@ -87,7 +93,7 @@ class Cell {
 }
 
 class Grid {
-    constructor (width, height, insert_point, css_grid_class) {
+    constructor (width, height, insert_point, css_grid_class, css_cell_initial_class) {
         this.width = width;
         this.height = height;
         this.insert_point = insert_point;
@@ -102,17 +108,18 @@ class Grid {
         for (let i = 0; i < this.width; i++) {
             for (let j = 0; j < this.height; j++) {
                 let new_cell = new Cell(`${i},${j}`)
-                this.addCell(new_cell);
+                this.addCell(new_cell, css_cell_initial_class);
             } 
         }
     }
 
-    addCell (new_cell) {
+    addCell (new_cell, css_cell_initial_class) {
         this.cells[new_cell.position] = new_cell;
         let coordinates = new_cell.position.split(',');
         coordinates = [parseInt(coordinates[0]), parseInt(coordinates[1])];
         new_cell.div.style.left = `${coordinates[0]*35}px`;
         new_cell.div.style.top = `${coordinates[1]*35}px`;
+        new_cell.div.setAttribute('class', css_cell_initial_class);
         this.div.appendChild(this.cells[new_cell.position].div);
     }
               
@@ -190,24 +197,50 @@ class Grid {
         return result;
         
     }
+
+    checkAndClearLines () {
+        const lines_to_clear = [];
+        for (let i = 0; i < 20; i++) {
+            let flag = false;
+            for (let j = 0; j < 10; j++) {
+                if (this.cells[`${j},${i}`].piece === null) {
+                    flag = true;
+                }
+
+            }
+            if (flag === false) {
+                lines_to_clear.push(i);
+            }
+        }
+        console.log(lines_to_clear);
+        for (let i = 0; i < lines_to_clear.length; i++) {
+            for (let j = 0; j < 10; j++) {
+                console.log(this.cells[`${j},${lines_to_clear[i]}`]);
+                this.cells[`${j},${lines_to_clear[i]}`].setClass('emptyCell');
+                this.cells[`${j},${lines_to_clear[i]}`].piece = null;
+            }
+        }
+
+    }
 }
 
 
 
 //MAIN CODE//
 document.addEventListener('DOMContentLoaded', function () {
-    let grid = new Grid(10, 20, '5,3', 'mainGrid');
+    let grid = new Grid(10, 20, '5,3', 'mainGrid', 'emptyCell');
+    let next_piece_grid = new Grid(9, 9, '4,4', 'nextPieceGrid', 'NextPieceGridCell');
     let intervals = {
         'main': null,
         'secondary': null
     }
-    piece_loader = new PieceLoader();
+    piece_loader = new PieceLoader(next_piece_grid);
     test_piece = piece_loader.popPiece();
     grid.addPiece(test_piece);
     let update_grid_counter = 0;
     let left = false;
     let right = false;
-    let spin = null;
+    let spin = false;
     window.addEventListener("keydown", function(event) {
         if (event.code === "ArrowLeft") {
             left = true;
@@ -271,6 +304,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             else {
                 grid.active_piece = null
+                grid.checkAndClearLines();
                 grid.addPiece(piece_loader.popPiece());
             }   
         }
