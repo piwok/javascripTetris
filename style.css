@@ -14,7 +14,15 @@
     margin: 0px;
 }
 
-.emptyCell {
+.invisibleGridCell {
+    background-color:brown;
+    width: 35px;
+    height: 35px;
+    position: absolute;
+    border: solid black;
+}
+
+.emptyGridCell {
     background-color:brown;
     width: 35px;
     height: 35px;
