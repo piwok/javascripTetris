@@ -4,6 +4,35 @@ function sumTwoArrays(array1, array2) {
 }
 
 //CLASSES//
+class Grid {
+    constructor(width, invisible_height, visible_height, insert_point,css_grid, css_empty_cell) {
+        this.width = width;
+        this.invisible_height = invisible_height;
+        this.visible_height = visible_height;
+        this.insert_point = insert_point;
+        this.cells = new Map();
+        this.css_empty_cell = css_empty_cell;
+        this.css_grid = css_grid;
+        this.active_piece = null;
+        this.div = document.createElement('div');
+        this.div.setAttribute('class', this.css_grid);
+    }
+    addCell(new_cell) {
+        //to_do//
+    }
+    addPiece(new_piece) {
+        //to_do//
+    }
+    updateGrid() {
+        //to_do//
+    }
+    checkAndClearLines() {
+        //to_do//
+    }
+}
+
+
+
 class Piece {
     static models = {
             'purplePiece': [['0,-1', '1,0', '2,0'], ['1,0', '0,1', '0,2'], ['0,1', '-1,0', '-2,0'], ['-1,0', '0,-1','0,-2']],
@@ -46,7 +75,25 @@ class Piece {
             else {
                 this.position++
             }
-            
+            const result = [this.anchor];
+            this.points[this.position].forEach((point) => {
+                result.push(sumTwoArrays(this.anchor, point))
+            })
+            return result;
+        }
+        else {
+            let temp_position = this.position;
+            if (temp_position === this.points.length-1) {
+                temp_position = 0;
+            }
+            else {
+                temp_position++;
+            }
+            const result = [this.anchor];
+            this.points[temp_position].forEach((point) => {
+                result.push(sumTwoArrays(this.anchor, point));
+            })
+            return result;
         }
     }
     pullPoint(removed_point) {
@@ -62,7 +109,7 @@ class PieceLoader {
     RPG() {
         const seed = Math.floor(Math.random() * (this.models.length));
         if (seed === this.models.length) {
-            seed = 6;
+            seed = this.models.length-1;
         }
         return new Piece(this.models[seed]);
     }
@@ -81,21 +128,6 @@ function main() {
     console.log('weeeeee');
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 // SetInterval script//
-
-
 
 }
