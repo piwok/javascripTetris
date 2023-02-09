@@ -33,6 +33,7 @@ class Grid {
         this.active_controller = null;
         this.div = document.createElement('div');
         this.div.setAttribute('class', this.css_grid);
+        this.div.tabIndex = 1;
         document.getElementById('root').appendChild(this.div);
         let new_cell = null;
         for (let i = 0; i < this.width; i++) {
@@ -61,7 +62,7 @@ class Grid {
     }
     addController(new_controller) {
         this.active_controller = new_controller;
-        this.div.addEventListener()
+        
     }
     updateGrid() {
         //to_do//
@@ -161,22 +162,80 @@ class PieceLoader {
 }
 class Controller {
     constructor(grid) {
+        this.grid = grid;
         this.left = false;
         this.right = false;
         this.down = false;
-        
+        this.active = false;
+        this.key_down_function = (event) => {
+                                    if (this.grid.active_piece != null) {
+                                        if (event.code === "ArrowLeft") {this.left = true;
+                                                console.log('weeeee');} 
+                                        else if (event.code === "ArrowRight"){this.right = true;
+                                                console.log('waaaaa');}
+                                        else if (event.code === "ArrowDown"){this.down = true;}
+                                        else if (event.code === 'Space') {}
+                                    }
+                                    else {console.log('aquiiiiiiiiiii');}
+                                    document.querySelector('.mainGrid').addEventListener("keyup", this.key_up_function, {once:true});
+                                }
+        this.key_up_function = (event) => {
+            if (this.grid.active_piece != null) {
+                if (event.code === "ArrowLeft") {this.left = false;
+                        console.log('weeeee');} 
+                else if (event.code === "ArrowRight"){this.right = false;
+                        console.log('waaaaa');}
+                else if (event.code === "ArrowDown"){this.down = false;}
+                else if (event.code === 'Space') {}
+            }
+            else {console.log('aquoooooooooooo');}
+            document.querySelector('.mainGrid').addEventListener("keydown", this.key_down_function, {once:true});
+        }
+
+        document.querySelector('.mainGrid').addEventListener("keydown", this.key_down_function, {once:true});
+        document.querySelector('.mainGrid').addEventListener("keyup", this.key_up_function, {once: true});
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 document.addEventListener('DOMContentLoaded', main);
 //Main script//
 function main() {
-    console.log('weeeeee');
     let grid = new Grid(10, 5, 20, [4, 4], 'mainGrid', 'emptyGridCell');
+   
     let piece_loader = new PieceLoader();
     grid.addPiece(piece_loader.popPiece());
+    let main_controller = new Controller(grid);
+    console.log(main_controller);
+    
+    
 
 
 // SetInterval script//
