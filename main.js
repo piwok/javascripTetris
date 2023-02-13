@@ -1,6 +1,12 @@
 //UTILS//
-function sumTwoArrays(array1, array2) {
-    return [array1[0] + array2[0], array1[1] + array2[1]];
+function sumTwoStrNums (str_num1, str_num2) {
+    let temp = [];
+    const num1 = str_num1.split(',');
+    const num2 = str_num2.split(',');
+    for(let i = 0; i < num1.length; i++) {
+        temp[i] = parseInt(num1[i]) + parseInt(num2[i]);
+    }
+    return temp.toString();
 }
 
 //CLASSES//
@@ -13,6 +19,7 @@ class Cell {
         this.div.setAttribute('class', css_template);
     }
     setClass(css_template) {
+        
         this.div.setAttribute('class', css_template);
     } 
 }
@@ -31,6 +38,9 @@ class Grid {
         this.css_grid = css_grid;
         this.active_piece = null;
         this.active_controller = null;
+        this.piece_loader = null;
+        this.animation_counter = 0;
+        this.animation_speed = 4;
         this.div = document.createElement('div');
         this.div.setAttribute('class', this.css_grid);
         this.div.tabIndex = 1;
@@ -40,20 +50,27 @@ class Grid {
             for (let j = 0; j < this.invisible_height + this.visible_height; j++) {
                 if (j < 5) {
                     new_cell = new Cell('invisibleGridCell');
-                    this.addCell(new_cell, [i, j]);
+                    this.addCell(new_cell, `${i},${j}`);
                 }
                 else {
                     new_cell = new Cell(css_empty_cell);
-                    this.addCell(new_cell, [i, j]);
+                    this.addCell(new_cell, `${i},${j}`);
                 }
             }
         }
     }
     addCell(new_cell, position) {
         this.cells_map.set(position, new_cell);
+        let temp = position.split(',');
+        let top = parseInt(temp[1])*35;
+        top.toString();
+        top = top + 'px'
+        let left = parseInt(temp[0])*35;
+        left.toString();
+        left = left + 'px';
         this.div.appendChild(new_cell.div);
-        new_cell.div.style.top = `${position[1]*35}px`;
-        new_cell.div.style.left =`${position[0]*35}px`;
+        new_cell.div.style.top = top;
+        new_cell.div.style.left = left;
 
     }
     addPiece(new_piece) {
@@ -62,10 +79,99 @@ class Grid {
     }
     addController(new_controller) {
         this.active_controller = new_controller;
-        
+    }
+    addPieceLoader(new_piece_loader) {
+        this.piece_loader = new_piece_loader;
+    }
+    isValidCoordinates(new_points) {
+        let result = true
+        new_points.forEach((point) => {
+            
+            if (!(this.cells_map.has(point))) {
+                result = false;
+            }
+            else if (this.cells_map.get(point).piece != null) {
+                if (this.cells_map.get(point).piece.piece_id != this.active_piece.piece_id) {result = false}
+            }
+        })
+        return result;
     }
     updateGrid() {
-        //to_do//
+        const parameters = this.active_controller.getParameters();
+        if (parameters['left'] === true) {
+            if (this.isValidCoordinates(this.active_piece.getMoveStep('-1,0', false))) {
+                this.active_piece.getMoveStep('0,0', false).forEach((point) => {
+                    if (parseInt(point.split(',')[1]) > 4) {
+                        this.cells_map.get(point).piece = null;
+                        this.cells_map.get(point).setClass('emptyGridCell');
+                    }
+                })
+                this.active_piece.getMoveStep('-1,0', true).forEach((point) => {
+                    if (parseInt(point.split(',')[1]) > 4) {
+                        this.cells_map.get(point).piece = this.active_piece;
+                        this.cells_map.get(point).setClass(this.active_piece.model);
+                    }
+                })
+            }
+        }
+        if (parameters['right'] === true) {
+            if (this.isValidCoordinates(this.active_piece.getMoveStep('1,0', false))) {
+                this.active_piece.getMoveStep('0,0', false).forEach((point) => {
+                    if (parseInt(point.split(',')[1]) > 4) {
+                        this.cells_map.get(point).piece = null;
+                        this.cells_map.get(point).setClass('emptyGridCell');
+                    }
+                })
+                this.active_piece.getMoveStep('1,0', true).forEach((point) => {
+                    if (parseInt(point.split(',')[1]) > 4) {
+                        this.cells_map.get(point).piece = this.active_piece;
+                        this.cells_map.get(point).setClass(this.active_piece.model);
+                    }
+                })
+            }
+        }
+        if (parameters['space'] === true) {
+            if (this.isValidCoordinates(this.active_piece.getSpinMove(false))) {
+                this.active_piece.getMoveStep('0,0', false).forEach((point) => {
+                    if (parseInt(point.split(',')[1]) > 4) {
+                        this.cells_map.get(point).piece = null;
+                        this.cells_map.get(point).setClass('emptyGridCell');
+                    }
+                })
+                this.active_piece.getSpinMove(true).forEach((point) => {
+                    if (parseInt(point.split(',')[1]) > 4) {
+                        this.cells_map.get(point).piece = this.active_piece;
+                        this.cells_map.get(point).setClass(this.active_piece.model);
+                    }
+                })
+            }
+        }
+        if (parameters['down'] === true) {
+            this.animation_counter = 4;
+        }
+        if (this.animation_counter === this.animation_speed) {
+            if (this.isValidCoordinates(this.active_piece.getMoveStep('0,1', false))) {
+                this.active_piece.getMoveStep('0,0', false).forEach((point) => {
+                    if (parseInt(point.split(',')[1]) > 4) {
+                        this.cells_map.get(point).piece = null;
+                        this.cells_map.get(point).setClass('emptyGridCell');
+                    }
+                })
+                this.active_piece.getMoveStep('0,1', true).forEach((point) => {
+                    if (parseInt(point.split(',')[1]) > 4) {
+                        this.cells_map.get(point).piece = this.active_piece;
+                        this.cells_map.get(point).setClass(this.active_piece.model);
+                    }
+                })
+            }
+            else {
+                this.addPiece(this.piece_loader.popPiece());
+            }
+            this.animation_counter = 0;
+        }
+        else {
+            this.animation_counter++;
+        }
     }
     checkAndClearLines() {
         //to_do//
@@ -76,13 +182,13 @@ class Grid {
 
 class Piece {
     static models = {
-            'purplePiece': [[[0,-1], [1,0], [2,0]], [[1,0], [0,1], [0,2]], [[0,1], [-1,0], [-2,0]], [[-1,0], [0,-1],[0,-2]]],
-            'darkBluePiece': [[[-1,0], [0,-1], [1,-1]], [[0,-1], [1,0], [1,1]]],
-            'yellowPiece': [[[0,-1], [-1,0], [-2,0]], [[1,0], [0,-1], [0,-2]], [[0,-1], [1,-1], [2,-1]], [[-1,0], [0,1], [0,2]]],
-            'orangePiece': [[[-1,-1], [0,-1], [1,0]], [[1,-1], [1,0], [0,1]]],
-            'redPiece': [[[0,-1], [0,-2], [0,-3]], [[1,0], [2,0], [3,0]]],
-            'greenPiece': [[[-1,0], [1,0], [0,-1]], [[0,-1], [1,0], [0,1]], [[-1,0], [1,0], [0,1]], [[0,-1], [-1,0], [0,1]]],
-            'bluePiece': [[[0,-1], [1,-1], [1,0]]]};
+            'purplePiece': [['0,-1', '1,0', '2,0'], ['1,0', '0,1', '0,2'], ['0,1', '-1,0', '-2,0'], ['-1,0', '0,-1','0,-2']],
+            'darkBluePiece': [['-1,0', '0,-1', '1,-1'], ['0,-1', '1,0', '1,1']],
+            'yellowPiece': [['0,-1', '-1,0', '-2,0'], ['1,0', '0,-1', '0,-2'], ['0,-1', '1,-1', '2,-1'], ['-1,0', '0,1', '0,2']],
+            'orangePiece': [['-1,-1', '0,-1', '1,0'], ['1,-1', '1,0', '0,1']],
+            'redPiece': [['0,-1', '0,-2', '0,-3'], ['1,0', '2,0', '3,0']],
+            'greenPiece': [['-1,0', '1,0', '0,-1'], ['0,-1', '1,0', '0,1'], ['-1,0', '1,0', '0,1'], ['0,-1', '-1,0', '0,1']],
+            'bluePiece': [['0,-1', '1,-1', '1,0']]};
     constructor(model) {
         this.model = model;
         this.points = Piece.models[this.model];
@@ -91,23 +197,23 @@ class Piece {
         this.anchor = null
     }
     getMoveStep(step, type) {
+        let result = [];
         if (type === true) {
-            this.anchor = sumTwoArrays(this.anchor, step);
-            const result = [this.anchor];
+            this.anchor = sumTwoStrNums(this.anchor, step);
+            result.push(this.anchor);
             this.points[this.position].forEach((point) => {
-                result.push(sumTwoArrays(this.anchor, point));
+                result.push(sumTwoStrNums(this.anchor, point));
             })
         }
         else {
-            const temp_anchor = sumTwoArrays(this.anchor, step);
-            const result = [temp_anchor];
+            let temp_anchor = sumTwoStrNums(this.anchor, step);
+            result.push(temp_anchor);
             this.points[this.position].forEach((point) => {
-                result.push[sumTwoArrays(temp_anchor, point)];
+                result.push(sumTwoStrNums(temp_anchor, point));
             })
         }
         return result;
-        }
-    
+    }
     getSpinMove(type) {
         if (type === true) {
             if (this.position === this.points.length-1) {
@@ -118,7 +224,7 @@ class Piece {
             }
             const result = [this.anchor];
             this.points[this.position].forEach((point) => {
-                result.push(sumTwoArrays(this.anchor, point))
+                result.push(sumTwoStrNums(this.anchor, point))
             })
             return result;
         }
@@ -132,7 +238,7 @@ class Piece {
             }
             const result = [this.anchor];
             this.points[temp_position].forEach((point) => {
-                result.push(sumTwoArrays(this.anchor, point));
+                result.push(sumTwoStrNums(this.anchor, point));
             })
             return result;
         }
@@ -140,7 +246,6 @@ class Piece {
     pullPoint(removed_point) {
         //To do//
     }
-    
 }
 class PieceLoader {
     constructor() {
@@ -161,65 +266,47 @@ class PieceLoader {
     }
 }
 class Controller {
-    constructor(grid) {
+    constructor(grid, interval) {
         this.grid = grid;
+        this.interval = interval;
         this.left = false;
         this.right = false;
         this.down = false;
+        this.space = false;
         this.active = false;
         this.key_down_function = (event) => {
-                                    if (this.grid.active_piece != null) {
-                                        if (event.code === "ArrowLeft") {this.left = true;
-                                                console.log('weeeee');} 
-                                        else if (event.code === "ArrowRight"){this.right = true;
-                                                console.log('waaaaa');}
-                                        else if (event.code === "ArrowDown"){this.down = true;}
-                                        else if (event.code === 'Space') {}
-                                    }
-                                    else {console.log('aquiiiiiiiiiii');}
-                                    document.querySelector('.mainGrid').addEventListener("keyup", this.key_up_function, {once:true});
-                                }
+            if (this.grid.active_piece != null) {
+                if (event.code === "ArrowLeft") {this.left = true;}
+                else if (event.code === "ArrowRight"){this.right = true;}
+                else if (event.code === "ArrowDown"){this.down = true;}
+                else if (event.code === 'Space') {this.space = true;}
+            }
+            document.querySelector('.mainGrid').addEventListener("keyup", this.key_up_function, {once:true});
+        }
         this.key_up_function = (event) => {
             if (this.grid.active_piece != null) {
-                if (event.code === "ArrowLeft") {this.left = false;
-                        console.log('weeeee');} 
-                else if (event.code === "ArrowRight"){this.right = false;
-                        console.log('waaaaa');}
+                if (event.code === "ArrowLeft") {this.left = false;} 
+                else if (event.code === "ArrowRight"){this.right = false;}
                 else if (event.code === "ArrowDown"){this.down = false;}
-                else if (event.code === 'Space') {}
+                else if (event.code === 'Space') {this.space = false;}
             }
-            else {console.log('aquoooooooooooo');}
             document.querySelector('.mainGrid').addEventListener("keydown", this.key_down_function, {once:true});
         }
-
         document.querySelector('.mainGrid').addEventListener("keydown", this.key_down_function, {once:true});
-        document.querySelector('.mainGrid').addEventListener("keyup", this.key_up_function, {once: true});
+        document.querySelector('.mainGrid').focus();
+    }
+    getParameters() {
+        if (this.active === false) {
+            return {'left': false, 'right': false, 'down': false, 'space': false}; 
+        }
+        else {
+            return {'left': this.left, 'right': this.right, 'down': this.down, 'space': this.space}
+        }
+    }
+    setState(new_state) {
+        this.active = new_state;
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -228,17 +315,19 @@ class Controller {
 document.addEventListener('DOMContentLoaded', main);
 //Main script//
 function main() {
-    let grid = new Grid(10, 5, 20, [4, 4], 'mainGrid', 'emptyGridCell');
-   
+    let grid = new Grid(10, 5, 20, '4,4', 'mainGrid', 'emptyGridCell');
     let piece_loader = new PieceLoader();
     grid.addPiece(piece_loader.popPiece());
     let main_controller = new Controller(grid);
-    console.log(main_controller);
+    grid.addController(main_controller);
+    grid.active_controller.setState(true);
+    grid.addPieceLoader(piece_loader);
+    
     
     
 
 
 // SetInterval script//
-    const main_grid_interval = setInterval(function () {grid.updateGrid();}, 500);
+    let main_grid_interval = setInterval(function () {grid.updateGrid();}, 100);
 
 }
